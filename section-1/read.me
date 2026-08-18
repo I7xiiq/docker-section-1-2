@@ -1,0 +1,128 @@
+# Docker Course
+
+### 1. The Problem: "It Works on My Machine"
+
+Before Docker, developers ran into a recurring nightmare:
+
+- A developer builds an app on their laptop. It works perfectly.
+- They send the code to a teammate, or deploy it to a server.
+- **It breaks.**
+
+Why does this happen? Because an application never runs in isolation — it depends on a whole environment around it:
+- A specific version of the programming language (e.g., Python 3.9 vs 3.11, Node 16 vs 20)
+- Specific versions of libraries and dependencies
+- OS-level configurations and installed system packages
+- Environment variables
+- Network/port configurations
+- Other software the app silently assumes is already installed
+
+Every machine — the developer's laptop, a teammate's laptop, the testing server, the production server — can have **slightly different versions** of all of these. And "slightly different" is often enough to break things in subtle, hard-to-debug ways.
+
+This became known as the classic developer complaint: **"But it works on my machine!"**
+
+#### How teams tried to solve this before Docker
+
+1. **Manual setup documentation** — a long README saying "install this version, then that version, set this environment variable...". This is error-prone, easy to forget a step, and goes out of date the moment the project changes.
+2. **Full Virtual Machines (VMs)** — package the entire environment, OS included, and share that. This works, but:
+   - VMs are **heavy** (each one can be several GBs).
+   - They're **slow to start** (booting a full OS takes minutes).
+   - They **waste resources**, since every VM runs its own complete operating system on top of the host's OS.
+
+Neither solution scales well, especially when you have multiple services, multiple environments (dev, staging, production), and multiple team members.
+
+### 2. The Solution: Docker
+
+Docker solves this problem by letting you **package an application together with everything it needs to run** — code, runtime, system tools, libraries, and settings — into a single, portable unit called a **container**.
+
+A container:
+- Runs the **exact same way** on any machine that has Docker installed — your laptop, a teammate's laptop, or a production server in the cloud.
+- Is **isolated** from the host system and from other containers, so dependencies never clash.
+- Is **lightweight**, because unlike a VM it doesn't include a full operating system — it shares the host machine's OS kernel and only packages what the application actually needs. This means containers start in **seconds**, not minutes.
+
+#### Docker vs Virtual Machines
+
+| | Virtual Machine | Docker Container |
+|---|---|---|
+| Includes full OS | Yes | No (shares host OS kernel) |
+| Startup time | Minutes | Seconds |
+| Size | GBs | MBs (usually) |
+| Resource usage | High (each VM = full OS overhead) | Low (near-native performance) |
+| Isolation level | Full hardware-level isolation | Process-level isolation |
+
+#### Without Docker vs With Docker
+
+| Without Docker | With Docker |
+|---|---|
+| "Works on my machine" problems | Runs identically everywhere |
+| Manual setup, easy to mess up | One command to run the whole environment |
+| Heavy Virtual Machines | Lightweight, fast containers |
+| Hard to share the exact environment | Environment is defined as code (Dockerfile) and shareable |
+
+**In short: Docker guarantees that if it runs in the container on your machine, it will run the exact same way anywhere else.**
+
+### 3. How Docker Works (Architecture Overview)
+
+Docker uses a **client-server architecture**:
+
+- **Docker Client** — the command-line tool (`docker`) you type commands into. It sends your commands (like `docker run`, `docker build`) to the Docker daemon.
+- **Docker Daemon (Docker Engine)** — runs in the background on your machine, and does the actual work: building images, running containers, managing networks and volumes.
+- **Docker Registry (e.g., Docker Hub)** — a remote storage service for images. You can `pull` existing images from it, or `push` your own images to share them.
+
+The basic flow looks like this:
+
+
+### 4. Core Concepts
+
+#### Image
+A read-only **template** that contains everything needed to run an application — the code, runtime, libraries, and dependencies, plus instructions for how to run it. Think of it as a **blueprint** or a snapshot frozen in time.
+
+- Built using a `Dockerfile` (a text file with step-by-step build instructions).
+- Images are made of **layers** — each instruction in the Dockerfile (like installing a package, or copying files) creates a new layer. Docker caches these layers, so rebuilding an image after a small change is fast (only changed layers get rebuilt).
+- Images don't change once built — they're immutable. To make changes, you build a new image (often with a new tag/version).
+- Images can be shared via a registry like **Docker Hub**.
+
+#### Container
+A **running instance** of an image. If the image is the blueprint, the container is the actual **live process** created from it.
+
+- You can create multiple containers from the same image, and each one runs independently, isolated from the others.
+- A container has its own filesystem, network interface, and process space — but it shares the host machine's OS kernel (which is why it's lightweight compared to a VM).
+- Containers are meant to be **disposable** — you can stop, delete, and recreate them at any time without losing your actual application code (which lives in the image).
+- Common commands: `docker run` (create + start a container from an image), `docker ps` (list running containers), `docker stop` / `docker rm` (stop/remove a container).
+
+#### Volume
+By default, **any data created or changed inside a container is lost** once that container is deleted — because the container's writable layer is temporary. This is a problem for anything that needs to persist, like a database's data.
+
+A **volume** solves this by providing a storage location **managed by Docker**, that exists **outside** the container's lifecycle:
+
+- Data in a volume stays intact even if the container using it is stopped, removed, or recreated.
+- Volumes can be shared between multiple containers.
+- Volumes are the recommended way to persist data in Docker (as opposed to just writing files inside the container itself, which is not safe long-term).
+- Common use cases: databases (MySQL, PostgreSQL, MongoDB), file uploads, logs you want to keep.
+
+#### Quick Comparison
+
+| Concept | What it is | Analogy |
+|---|---|---|
+| **Image** | A read-only blueprint for an app + its environment | A recipe |
+| **Container** | A running instance of an image | A dish cooked from that recipe |
+| **Volume** | Persistent storage outside the container's lifecycle | A separate fridge that survives even if you throw away the dish |
+
+### 5. Installing Docker
+
+- **Windows/Mac**: Install **Docker Desktop** from [docker.com](https://www.docker.com/products/docker-desktop/).
+- **Linux**: Install Docker Engine directly via your distribution's package manager (instructions vary — Docker's official docs cover each distro).
+- After installation, verify it works by running:
+```bash
+  docker --version
+  docker run hello-world
+```
+  If you see a welcome message from the `hello-world` container, Docker is installed correctly.
+
+### Topics Covered in This Section
+- The problem Docker solves ("works on my machine")
+- Docker vs Virtual Machines
+- Docker architecture (client, daemon, registry)
+- Core concepts: Image, Container, Volume
+- Installing and verifying Docker
+- Writing your first Dockerfile
+- Building an image and running your first container
