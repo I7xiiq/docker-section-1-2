@@ -1,0 +1,3 @@
+install node:20-alpine
+install vs-code
+install docker
