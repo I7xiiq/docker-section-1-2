@@ -51,3 +51,11 @@ to see container:
 
 to remove container:
    docker rm express-node-app-container -f
+
+
+
+
+
+
+ to open terminal in container:
+  docker exec -it containername bash
