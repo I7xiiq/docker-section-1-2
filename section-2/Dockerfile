@@ -8,6 +8,12 @@ COPY package.json .
 # Copies package.json (and package-lock.json if matched) into the container first,
 # so dependency installation can be cached separately from the rest of the code
 
+# Copy only package.json first (not the whole project yet).
+# This lets Docker cache the "npm install" step below —
+# if package.json hasn't changed since the last build,
+# Docker reuses the cached dependencies instead of reinstalling them,
+# making rebuilds much faster when only source code changes.
+
 RUN npm install
 # Installs the project's dependencies based on package.json
 
